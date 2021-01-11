@@ -51,8 +51,8 @@ namespace Karmatach.MaxPlay
 
                 bool? state = trend switch
                 {
-                    > 72 => true,
-                    < 65 => false,
+                    > 72 => false,
+                    < 65 => true,
                     _ => null
                 };
 
