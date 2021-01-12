@@ -19,7 +19,9 @@ I'm using Azure Functions for simplicity and [Blob Storage vs Table Storage](htt
 
 STLs for mounting the LED matrixes can be found [here](https://github.com/McNerdius/3DP/tree/master/LED%20Matrix%2016x32/STL)
 
-Wiring diagrams to come, but the hookups for the LED matrix displays match [this](https://github.com/joewez/WifiMarquee); the si7021 & OLED miniscreen use default i2c lines (D1/D2 on the [wemos d1 mini](https://www.wemos.cc/en/latest/d1/d1_mini.html)); and note you'll need to connect D0 to RST on the D1 mini for deep sleep to work.
+Wiring diagrams to come, but the hookups for the LED matrix displays match [this](https://github.com/joewez/WifiMarquee); the si7021 & OLED miniscreen use default i2c lines (D1/D2 on the [wemos d1 mini](https://www.wemos.cc/en/latest/d1/d1_mini.html)); and note you'll need to connect D0 to RST on the D1 mini for deep sleep to work.  
+
+I've battery level monitoring to the `Si7021_8266` project, using the ADC.  The a "raw" ESP8266 expects a maximum of 1 volt on analog in, but the D1 mini has a voltage divider upping the range to 3.2v.  To drop the full battery charge of ~4.2v to the expected 3.2v, i added another voltage divider - 10k on "R1", 33k on "R2", and vOut connected to analog in.  [See here](https://ohmslawcalculator.com/voltage-divider-calculator).
 
 ---
 

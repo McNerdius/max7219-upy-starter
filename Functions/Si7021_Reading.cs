@@ -5,6 +5,7 @@ namespace Karmatach.MaxPlay
         public string Time { get; set; }
         public double F { get; set; }
         public double RH { get; set; }
+        public double Battery { get; set; }
         public bool? SetState { get; set; }
     }
 }
