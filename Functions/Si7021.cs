@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection.Metadata.Ecma335;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -11,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Karmatach.MaxPlay
 {
@@ -25,11 +27,12 @@ namespace Karmatach.MaxPlay
             this.httpClient = httpClient;
         }
 
-        [FunctionName( "PutSi7021" )]
-        public async Task Put(
-            [HttpTrigger( AuthorizationLevel.Anonymous, "post", Route = "Si7021/put/{hardwareId}/" )] HttpRequest httpRequest,
+        [FunctionName( "SetSi7021" )]
+        public async Task Set(
+            [HttpTrigger( AuthorizationLevel.Anonymous, "get", "post", Route = "Si7021/set/{hardwareId}/" )] HttpRequest httpRequest,
             [Blob( "data/Si7021/{hardwareId}.json", FileAccess.Read )] Stream blobInput,
-            [Blob( "data/Si7021/{hardwareId}.json", FileAccess.Write )] Stream blobOutput )
+            [Blob( "data/Si7021/{hardwareId}.json", FileAccess.Write )] Stream blobOutput,
+            ILogger log )
         {
             var readings = blobInput switch
             {
@@ -51,8 +54,8 @@ namespace Karmatach.MaxPlay
 
                 reading.SetState = trend switch
                 {
-                    > 72 => false,
-                    < 65 => true,
+                    > 74 => false,
+                    < 68 => true,
                     _ => null
                 };
 
@@ -60,11 +63,12 @@ namespace Karmatach.MaxPlay
                 {
                     await httpClient.GetAsync( s ? config["ifttt_on"] : config["ifttt_off"] );
                 }
+
             }
 
             readings = readings.Take( 100 ).Prepend( reading );
 
-            await JsonSerializer.SerializeAsync( blobOutput, readings );
+            await JsonSerializer.SerializeAsync( blobOutput, readings, new JsonSerializerOptions { IgnoreNullValues = true } );
         }
 
         [FunctionName( "GetSi7021" )]
@@ -72,17 +76,39 @@ namespace Karmatach.MaxPlay
         [HttpTrigger( AuthorizationLevel.Anonymous, "get", "post", Route = "Si7021/get/{hardwareId}/" )] HttpRequest http,
         [Blob( "data/Si7021/{hardwareId}.json", FileAccess.Read )] Stream blobInput )
         {
-            var reading = blobInput switch
+            if ( blobInput is null )
             {
-                null => new Si7021_Reading(),
-                _ => (await JsonSerializer.DeserializeAsync<IEnumerable<Si7021_Reading>>( blobInput )).First()
-            };
+                return new NotFoundResult();
+            }
+            else
+            {
+                var reading = (await JsonSerializer.DeserializeAsync<IEnumerable<Si7021_Reading>>( blobInput )).First();
 
-            return new ContentResult
+                return new ContentResult
+                {
+                    Content = JsonSerializer.Serialize( new { reading.RH, reading.F, reading.Time, reading.Battery } ),
+                    ContentType = "application/json"
+                };
+            }
+        }
+
+        [FunctionName( "AllSi7021" )]
+        public async Task<IActionResult> All(
+        [HttpTrigger( AuthorizationLevel.Anonymous, "get", "post", Route = "Si7021/all/{hardwareId}/" )] HttpRequest http,
+        [Blob( "data/Si7021/{hardwareId}.json", FileAccess.Read )] TextReader blobInput )
+        {
+            if ( blobInput is null )
             {
-                Content = JsonSerializer.Serialize( new { reading.RH, reading.F }, new JsonSerializerOptions { IgnoreNullValues = true } ),
-                ContentType = "application/json"
-            };
+                return new NotFoundResult();
+            }
+            else
+            {
+                return new ContentResult
+                {
+                    Content = await blobInput.ReadToEndAsync(),
+                    ContentType = "application/json"
+                };
+            }
         }
     }
 }
