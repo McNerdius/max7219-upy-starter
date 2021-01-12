@@ -49,19 +49,17 @@ namespace Karmatach.MaxPlay
             {
                 var trend = recent.Sum( r => r.F ) / trendCount;
 
-                bool? state = trend switch
+                reading.SetState = trend switch
                 {
                     > 72 => false,
                     < 65 => true,
                     _ => null
                 };
 
-                if ( state is bool s )
+                if ( reading.SetState is bool s )
                 {
-                    reading.SetState = s;
                     await httpClient.GetAsync( s ? config["ifttt_on"] : config["ifttt_off"] );
                 }
-
             }
 
             readings = readings.Take( 100 ).Prepend( reading );
