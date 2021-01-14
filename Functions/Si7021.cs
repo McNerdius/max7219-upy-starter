@@ -47,9 +47,9 @@ namespace Karmatach.MaxPlay
             var recent = readings.Take( trendCount );
 
             // let the trend do trendy things for a bit between checks, mmk
-            if ( recent.All( r => r.HeaterStateSetTo is null ) )
+            if ( recent.Count() >= trendCount && recent.All( r => r.HeaterStateSetTo is null ) )
             {
-                var trend = recent.Sum( r => r.F ) / trendCount;
+                var trend = recent.Average( r => r.F );
 
                 reading.HeaterStateSetTo = trend switch
                 {
