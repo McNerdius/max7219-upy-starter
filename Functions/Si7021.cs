@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Reflection.Metadata.Ecma335;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -47,19 +46,19 @@ namespace Karmatach.MaxPlay
             var trendCount = 4;
             var recent = readings.Take( trendCount );
 
-            // let the trend do trendy things for a bit, mmk
-            if ( recent.Where( r => r.SetState is not null ).Count() == 0 )
+            // let the trend do trendy things for a bit between checks, mmk
+            if ( recent.All( r => r.SetHeaterStateTo is null ) )
             {
                 var trend = recent.Sum( r => r.F ) / trendCount;
 
-                reading.SetState = trend switch
+                reading.SetHeaterStateTo = trend switch
                 {
                     > 74 => false,
                     < 68 => true,
                     _ => null
                 };
 
-                if ( reading.SetState is bool s )
+                if ( reading.SetHeaterStateTo is bool s )
                 {
                     await httpClient.GetAsync( s ? config["ifttt_on"] : config["ifttt_off"] );
                 }
