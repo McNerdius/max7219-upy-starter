@@ -47,18 +47,18 @@ namespace Karmatach.MaxPlay
             var recent = readings.Take( trendCount );
 
             // let the trend do trendy things for a bit between checks, mmk
-            if ( recent.All( r => r.SetHeaterStateTo is null ) )
+            if ( recent.All( r => r.HeaterStateSetTo is null ) )
             {
                 var trend = recent.Sum( r => r.F ) / trendCount;
 
-                reading.SetHeaterStateTo = trend switch
+                reading.HeaterStateSetTo = trend switch
                 {
                     > 74 => false,
                     < 68 => true,
                     _ => null
                 };
 
-                if ( reading.SetHeaterStateTo is bool s )
+                if ( reading.HeaterStateSetTo is bool s )
                 {
                     await httpClient.GetAsync( s ? config["ifttt_on"] : config["ifttt_off"] );
                 }
@@ -85,7 +85,7 @@ namespace Karmatach.MaxPlay
 
                 return new ContentResult
                 {
-                    Content = JsonSerializer.Serialize( new { reading.RH, reading.F, reading.Time, reading.Battery } ),
+                    Content = JsonSerializer.Serialize( reading, new JsonSerializerOptions { IgnoreNullValues = true } ),
                     ContentType = "application/json"
                 };
             }

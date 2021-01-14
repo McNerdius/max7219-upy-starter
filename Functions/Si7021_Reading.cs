@@ -6,6 +6,6 @@ namespace Karmatach.MaxPlay
         public double F { get; set; }
         public double RH { get; set; }
         public ushort Battery { get; set; }
-        public bool? SetHeaterStateTo { get; set; }
+        public bool? HeaterStateSetTo { get; set; }
     }
 }
