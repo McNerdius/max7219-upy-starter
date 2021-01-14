@@ -18,7 +18,7 @@ reading = {
     "F": round(si7021.convert_celcius_to_fahrenheit(temp_sensor.temperature),
                1),
     "RH": round(temp_sensor.relative_humidity, 1),
-    "Battery": round((adc.read() / 1024) * 4.2, 1)
+    "Battery": adc.read()
 }
 
 temp = str(reading["F"])
@@ -29,7 +29,7 @@ screen.fill(0)
 
 screen.text(temp + " f", 2, 2, 1)
 screen.text(rh + " rh", 2, 12, 1)
-screen.text(battery + "v", 2, 22, 1)
+screen.text(battery, 2, 22, 1)
 
 screen.text("pushing", 68, 12, 1)
 screen.text("data...", 68, 20, 1)
